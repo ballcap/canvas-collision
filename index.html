@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        canvas { border: solid 1px #222; }
+    </style>
+</head>
+<body>
+<canvas width="315" height="475" id="can"></canvas>
+<script>
+    const cnvs = document.getElementById("can");
+    const ctx = cnvs.getContext("2d");
+    const gravity = 0.07;
+    const damping = 0.77;
+
+    class Ball {
+        constructor(x, y, vx, vy, color) {
+            this.x = x;
+            this.y = y;
+            this.vx = vx;
+            this.vy = vy;
+            this.color = color;
+            this.size = 35;
+        }
+
+        draw() {
+            ctx.fillStyle = this.color;
+            ctx.fillRect(this.x, this.y, this.size, this.size);
+        }
+
+        update() {
+            this.vy += gravity;
+            this.x += this.vx;
+            this.y += this.vy;
+
+            if (this.y + this.size >= cnvs.height || this.y <= 0) {
+                this.y = this.y + this.size >= cnvs.height ? cnvs.height - this.size : 0;
+                this.vy = -this.vy * damping;
+                this.vx *= damping;
+            }
+
+            if (this.x + this.size >= cnvs.width || this.x <= 0) {
+                this.x = this.x + this.size >= cnvs.width ? cnvs.width - this.size : 0;
+                this.vx = -this.vx * damping;
+            }
+        }
+    }
+
+    const balls = [
+        new Ball(10, 10, 5.2, 0, "#33f"),
+        new Ball(40, 60, -3.3, 0, "#3f3"),
+        new Ball(100, 100, -1.1, 0, "#f33"),
+        new Ball(100, 160, 6.4, 0, "#212121"),
+        new Ball(150, 200, 8, 0, "#999")
+    ];
+
+    function detectCollision(ball1, ball2) {
+        return ball1.x < ball2.x + ball2.size &&
+               ball1.x + ball1.size > ball2.x &&
+               ball1.y < ball2.y + ball2.size &&
+               ball1.y + ball1.size > ball2.y;
+    }
+
+    function handleCollision(ball1, ball2) {
+        [ball1.vx, ball2.vx] = [ball2.vx, ball1.vx];
+        [ball1.vy, ball2.vy] = [ball2.vy, ball1.vy];
+    }
+
+    function animate() {
+        ctx.clearRect(0, 0, cnvs.width, cnvs.height);
+
+        balls.forEach(ball => ball.draw());
+        balls.forEach(ball => ball.update());
+
+        for (let i = 0; i < balls.length; i++) {
+            for (let j = i + 1; j < balls.length; j++) {
+                if (detectCollision(balls[i], balls[j])) {
+                    handleCollision(balls[i], balls[j]);
+                }
+            }
+        }
+
+        requestAnimationFrame(animate);
+    }
+
+    animate();
+</script>
+</body>
+</html>
